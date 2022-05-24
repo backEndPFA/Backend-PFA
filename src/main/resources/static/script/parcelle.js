@@ -1,21 +1,25 @@
 $(document)
     .ready(
-        function() {
+        function () {
 
-            table = $('#tmarque')
+            table = $('#tparcelle')
                 .DataTable({
                     ajax: {
                         url: "parcelle/all",
                         dataSrc: ''
                     },
                     columns: [{
-                            data: "id"
-                        },
+                        data: "id"
+                    },
                         {
                             data: "surface"
                         },
                         {
-                            data: "photo"
+                            data: 'photo',
+                            "render": function (data, type, row, meta) {
+                                return '<img src="' + data + '" alt="' + data + '"height="16" width="16"/>';
+
+                            }
                         },
                         {
                             data: "ferme.id"
@@ -24,12 +28,12 @@ $(document)
                             data: "typeSole.libelle"
                         },
                         {
-                            "render": function() {
+                            "render": function () {
                                 return '<button type="button" class="btn btn-outline-danger supprimer">Supprimer</button>';
                             }
                         },
                         {
-                            "render": function() {
+                            "render": function () {
                                 return '<button type="button" class="btn btn-outline-secondary modifier">Modifier</button>';
                             }
                         }
@@ -40,7 +44,7 @@ $(document)
             $.ajax({
                 url: '/ferme/all',
                 type: 'GET',
-                success: function(data) {
+                success: function (data) {
                     var option = '';
                     data.forEach(e => {
                         option += '<option value =' + e.id + '>' + e.id + '</option>';
@@ -48,8 +52,8 @@ $(document)
 
                     $('#fermes').append(option);
                 },
-                error: function(jqXHR, textStatus,
-                    errorThrown) {
+                error: function (jqXHR, textStatus,
+                                 errorThrown) {
                     console.log(textStatus);
                 }
 
@@ -58,7 +62,7 @@ $(document)
             $.ajax({
                 url: '/typesole/all',
                 type: 'GET',
-                success: function(data) {
+                success: function (data) {
                     var option = '';
                     data.forEach(e => {
                         option += '<option value =' + e.id + '>' + e.libelle + '</option>';
@@ -66,55 +70,71 @@ $(document)
 
                     $('#typesoles').append(option);
                 },
-                error: function(jqXHR, textStatus,
-                    errorThrown) {
+                error: function (jqXHR, textStatus,
+                                 errorThrown) {
                     console.log(textStatus);
                 }
             });
             //button ajouter parcelle
             $('#btn').click(
-                function() {
+                function () {
                     var surface = $("#surface");
-                    var photo = $("#photo");
+
                     var fermes = $("#fermes");
                     var typesoles = $("#typesoles");
 
                     if ($('#btn').text() == 'Ajouter') {
-                        var m = {
-                            surface: surface.val(),
-                            photo: photo.val(),
-                            ferme: {
-                                id: fermes.val(),
-                            },
-                            typeSole: {
-                                id: typesoles.val(),
-                            }
-                        };
+                        //upload file
+                        var file = $('#photo')[0].files[0]
+                        var fd = new FormData();
+                        fd.append('file', file);
                         $.ajax({
-                            url: 'parcelle/saves',
-                            contentType: "application/json",
-                            dataType: "json",
-                            data: JSON.stringify(m),
+                            url: '/load-parcelle',
                             type: 'POST',
-                            async: false,
-                            success: function(data, textStatus,
-                                jqXHR) {
-                                table.ajax.reload();
-                            },
-                            error: function(jqXHR, textStatus,
-                                errorThrown) {
-                                console.log(textStatus);
+                            processData: false,
+                            contentType: false,
+                            data: fd,
+                            success: function (photo, status, jqxhr) {
+
+
+                                var m = {
+
+                                    surface: surface.val(),
+                                    photo: photo,
+                                    ferme: {
+                                        id: fermes.val(),
+                                    },
+                                    typeSole: {
+                                        id: typesoles.val(),
+                                    }
+                                };
+                                $.ajax({
+                                    url: 'parcelle/saves',
+                                    contentType: "application/json",
+                                    dataType: "json",
+                                    data: JSON.stringify(m),
+                                    type: 'POST',
+                                    async: false,
+                                    success: function (data, textStatus,
+                                                       jqXHR) {
+                                        table.ajax.reload();
+                                    },
+                                    error: function (jqXHR, textStatus,
+                                                     errorThrown) {
+                                        console.log(textStatus);
+                                    }
+                                });
+                                $("#main-content").load(
+                                    "./page/parcelle.html");
                             }
                         });
-                        $("#main-content").load(
-                            "./page/parcelle.html");
                     }
                 });
             $('#table-content')
                 .on(
                     'click',
                     '.supprimer',
-                    function() {
+                    function () {
 
                         var id = $(this).closest('tr').find(
                             'td').eq(0).text();
@@ -130,14 +150,14 @@ $(document)
                         $(this).closest('tr').replaceWith(
                             newLigne);
                         $('.annuler').click(
-                            function() {
+                            function () {
                                 $(this).closest('tr')
                                     .replaceWith(
                                         oldLing);
                             });
                         $('.confirmer')
                             .click(
-                                function(e) {
+                                function (e) {
                                     e.preventDefault();
                                     $
                                         .ajax({
@@ -146,26 +166,26 @@ $(document)
                                             data: {},
                                             type: 'DELETE',
                                             async: false,
-                                            success: function(
+                                            success: function (
                                                 data,
                                                 textStatus,
                                                 jqXHR) {
                                                 if (data
                                                     .includes("error") == true) {
                                                     $(
-                                                            "#error")
+                                                        "#error")
                                                         .modal();
                                                 } else {
                                                     table.ajax
                                                         .reload();
                                                 }
                                             },
-                                            error: function(
+                                            error: function (
                                                 jqXHR,
                                                 textStatus,
                                                 errorThrown) {
                                                 $(
-                                                        "#error")
+                                                    "#error")
                                                     .modal();
                                             }
                                         });
@@ -177,10 +197,11 @@ $(document)
             $('#table-content').on(
                 'click',
                 '.modifier',
-                function() {
+                function () {
                     var btn = $('#btn');
                     var id = $(this).closest('tr').find('td').eq(0)
-                        .text();;
+                        .text();
+                    ;
                     var code = $(this).closest('tr').find('td').eq(
                         1).text();
                     var libelle = $(this).closest('tr').find('td')
@@ -191,7 +212,7 @@ $(document)
                     $("#libelle").val(libelle);
                     $("#id").val(id);
 
-                    btn.click(function(e) {
+                    btn.click(function (e) {
                         e.preventDefault();
                         var m = {
                             id: $("#id").val(),
@@ -206,14 +227,14 @@ $(document)
                                 data: JSON.stringify(m),
                                 type: 'POST',
                                 async: false,
-                                success: function(data,
-                                    textStatus, jqXHR) {
+                                success: function (data,
+                                                   textStatus, jqXHR) {
                                     table.ajax.reload();
 
                                     btn.text('Ajouter');
                                 },
-                                error: function(jqXHR, textStatus,
-                                    errorThrown) {
+                                error: function (jqXHR, textStatus,
+                                                 errorThrown) {
                                     console.log(textStatus);
                                 }
                             });

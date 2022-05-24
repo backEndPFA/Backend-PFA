@@ -43,7 +43,12 @@ public class User implements Serializable , UserDetails {
 		
 		
 	}
-    
+    public User(int userId ) {
+
+    this.userId=userId;
+    }
+
+
     public String getEmail() {
 		return email;
 	}

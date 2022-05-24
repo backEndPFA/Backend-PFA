@@ -1,8 +1,14 @@
 package com.example.demo.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import com.example.demo.model.Ferme;
+import com.example.demo.model.Parcelle;
+import com.example.demo.model.TypePlante;
+import com.example.demo.repository.TypePlanteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +26,8 @@ import com.example.demo.repository.GrandeurRepository;
 public class GrandeurController {
 	@Autowired
 	private GrandeurRepository grandeurRepository;
+	@Autowired
+	private TypePlanteRepository typePlanteRepository;
 
 	@GetMapping("/all")
 	public List<Grandeur> findAll() {
@@ -54,4 +62,6 @@ public class GrandeurController {
 	public void delete(@PathVariable(required = true) int id) {
 		grandeurRepository.deleteById(id);
 	}
+
+
 }

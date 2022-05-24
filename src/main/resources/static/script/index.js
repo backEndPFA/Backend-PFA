@@ -1,6 +1,13 @@
 
 $(document).ready(function(){
     $.ajax({
+        url:"/role",
+        type:"GET",
+        success:function(data){
+            $(".user-role").html(data);
+        }
+    });
+    $.ajax({
     	url:"/username",
     	type:"GET",
     	success:function(data){

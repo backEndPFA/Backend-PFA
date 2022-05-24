@@ -66,10 +66,10 @@ $(document).ready(function() {
 
 
     // # ===============================
-    // # = Nombre des machines achetées par année
+    // # = Nombre arosage par parcelle
     // # ===============================
     $.ajax({
-        url: 'machines/byYear',
+        url: 'parcelle/countarosage',
         contentType: "application/json",
         dataType: "json",
         data: '',
@@ -77,33 +77,18 @@ $(document).ready(function() {
         async: false,
         success: function(data) {
             console.log(data);
+
             var labels = new Array();
             var dt = new Array();
 
-            labels.push(data[0][0]);
-            dt.push(data[0][1]);
-
-            data.forEach((e, index) => {
-                if (index == 0)
-                    return;
-                if (e[0] == labels[labels.length - 1] + 1) {
-                    labels.push(e[0]);
-                    dt.push(e[1]);
-                } else {
-                    do {
-                        labels.push(labels[labels.length - 1] + 1);
-                        dt.push(0);
-                    } while (e[0] != labels[labels.length - 1] + 1);
-                    labels.push(e[0]);
-                    dt.push(e[1]);
-                }
+            Object.keys(data).forEach(key => {
+                labels.push(key); // returns the keys in an object
+                dt.push(data[key]); // returns the appropriate value
             });
 
-            console.log(labels);
-
             var ctx = document.getElementById('byYear').getContext('2d');
-            var myChart = new Chart(ctx, {
-                type: 'line',
+            var byYear = new Chart(ctx, {
+                type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
@@ -130,7 +115,7 @@ $(document).ready(function() {
                 options: {
                     title: {
                         display: true,
-                        text: 'Evolution des achats',
+                        text: 'Nombre d\'arosage par parcelle',
                         fontSize: 21,
                         padding: 20,
                         fontFamily: 'Calibri',
@@ -147,13 +132,13 @@ $(document).ready(function() {
                             },
                             scaleLabel: {
                                 display: true,
-                                labelString: 'Nombre des machines'
+                                labelString: 'Nombre d\'arosage'
                             }
                         }],
                         xAxes: [{
                             scaleLabel: {
                                 display: true,
-                                labelString: 'Année'
+                                labelString: 'Parcelle'
                             }
                         }],
                     }
@@ -161,16 +146,15 @@ $(document).ready(function() {
             });
         },
         error: function(jqXHR, textStatus,
-            errorThrown) {
+                        errorThrown) {
             console.log(textStatus);
         }
     });
-
     // # ===============================
-    // # = Nombre des machines par marque
+    // # = Nombre des parcelles par ferme
     // # ===============================
     $.ajax({
-        url: 'marques/count',
+        url: 'parcelle/countparcelle',
         contentType: "application/json",
         dataType: "json",
         data: '',
@@ -216,7 +200,7 @@ $(document).ready(function() {
                 options: {
                     title: {
                         display: true,
-                        text: 'Nombre des machines par marque',
+                        text: 'Nombre des parcelles par ferme',
                         fontSize: 21,
                         padding: 20,
                         fontFamily: 'Calibri',
@@ -233,13 +217,13 @@ $(document).ready(function() {
                             },
                             scaleLabel: {
                                 display: true,
-                                labelString: 'Nombre des machines'
+                                labelString: 'Nombre des parcelles'
                             }
                         }],
                         xAxes: [{
                             scaleLabel: {
                                 display: true,
-                                labelString: 'Marques'
+                                labelString: 'Ferme'
                             }
                         }],
                     }

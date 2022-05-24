@@ -44,10 +44,10 @@ function show(page) {
         $("#main-content").load("page/typeSole.html");
         event.preventDefault();
     }
-    if (page == "marques") {
+    if (page == "alerte") {
         $('a').removeClass('active');
         $('a:contains(Marques)').addClass('active');
-        $("#main-content").load("page/marque.html");
+        $("#main-content").load("page/alert.html");
         event.preventDefault();
     }
     if (page == "historique") {

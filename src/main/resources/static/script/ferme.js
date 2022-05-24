@@ -1,7 +1,6 @@
 $(document)
     .ready(
-        function() {
-
+        function () {
             table = $('#tproduit')
                 .DataTable({
                     ajax: {
@@ -9,21 +8,25 @@ $(document)
                         dataSrc: ''
                     },
                     columns: [{
-                            data: "id"
-                        },
+                        data: "id"
+                    },
                         {
                             data: "numParcel"
                         },
                         {
-                            data: "photo"
+                            data: 'photo',
+                            "render": function (data, type, row, meta) {
+                                return '<img src="' + data + '" alt="' + data + '"height="16" width="16"/>';
+
+                            }
                         },
                         {
-                            "render": function() {
+                            "render": function () {
                                 return '<button type="button" class="btn btn-outline-danger supprimer">Supprimer</button>';
                             }
                         },
                         {
-                            "render": function() {
+                            "render": function () {
                                 return '<button type="button" class="btn btn-outline-secondary modifier">Modifier</button>';
                             }
                         }
@@ -32,43 +35,70 @@ $(document)
                 });
 
             $('#btn').click(
-                function() {
-                    var nbrparcelle = $("#nbrparcelle");
-                    var photo = $("#photo");
+                function () {
+                    $.ajax({
+                        url: "/userid",
+                        type: "GET",
+                        success: function (userid) {
+                            var nbrparcelle = $("#nbrparcelle");
+                            if ($('#btn').text() == 'Ajouter') {
+                                //upload file
+                                var file = $('#photo')[0].files[0]
+                                var fd = new FormData();
+                                fd.append('file', file);
+                                $.ajax({
+                                    url: '/load-ferme',
+                                    type: 'POST',
+                                    processData: false,
+                                    contentType: false,
+                                    data: fd,
+                                    success: function (photo, status, jqxhr) {
 
-                    if ($('#btn').text() == 'Ajouter') {
-                        var p = {
-                            numParcel: nbrparcelle.val(),
-                            img: photo.val(),
-                            user: null
-                        };
+                                        var p = {
+                                            numParcel: nbrparcelle.val(),
+                                            photo: photo,
+                                            user: {
+                                                userId: userid
+                                            }
+                                        };
+                                        $.ajax({
+                                            url: 'ferme/saves',
+                                            contentType: "application/json",
+                                            dataType: "json",
+                                            data: JSON.stringify(p),
+                                            type: 'POST',
+                                            async: true,
+                                            success: function (data, textStatus,
+                                                               jqXHR) {
+                                                table.ajax.reload();
+                                            },
+                                            error: function (jqXHR, textStatus,
+                                                             errorThrown) {
+                                                console.log(textStatus);
+                                            }
+                                        });
 
-                        $.ajax({
-                            url: 'ferme/saves',
-                            contentType: "application/json",
-                            dataType: "json",
-                            data: JSON.stringify(p),
-                            type: 'POST',
-                            async: true,
-                            success: function(data, textStatus,
-                                jqXHR) {
-                                table.ajax.reload();
-                            },
-                            error: function(jqXHR, textStatus,
-                                errorThrown) {
-                                console.log(textStatus);
+                                        //  table.ajax.reload();
+                                    },
+                                    error: function (jqxhr, status, msg) {
+                                        //error code
+                                    }
+                                });
+
+
                             }
-                        });
-                        $("#main-content").load(
-                            "./page/ferme.html");
-                    }
+                            $("#main-content").load(
+                                "./page/ferme.html");
+
+                        }
+                    });
                 });
 
             $('#table-content')
                 .on(
                     'click',
                     '.supprimer',
-                    function() {
+                    function () {
 
                         var id = $(this).closest('tr').find(
                             'td').eq(0).text();
@@ -84,14 +114,14 @@ $(document)
                         $(this).closest('tr').replaceWith(
                             newLigne);
                         $('.annuler').click(
-                            function() {
+                            function () {
                                 $(this).closest('tr')
                                     .replaceWith(
                                         oldLing);
                             });
                         $('.confirmer')
                             .click(
-                                function(e) {
+                                function (e) {
                                     e.preventDefault();
                                     $
                                         .ajax({
@@ -100,26 +130,26 @@ $(document)
                                             data: {},
                                             type: 'DELETE',
                                             async: false,
-                                            success: function(
+                                            success: function (
                                                 data,
                                                 textStatus,
                                                 jqXHR) {
                                                 if (data
                                                     .includes("error") == true) {
                                                     $(
-                                                            "#error")
+                                                        "#error")
                                                         .modal();
                                                 } else {
                                                     table.ajax
                                                         .reload();
                                                 }
                                             },
-                                            error: function(
+                                            error: function (
                                                 jqXHR,
                                                 textStatus,
                                                 errorThrown) {
                                                 $(
-                                                        "#error")
+                                                    "#error")
                                                     .modal();
                                             }
                                         });
@@ -131,10 +161,11 @@ $(document)
             $('#table-content').on(
                 'click',
                 '.modifier',
-                function() {
+                function () {
                     var btn = $('#btn');
                     var id = $(this).closest('tr').find('td').eq(0)
-                        .text();;
+                        .text();
+                    ;
                     var code = $(this).closest('tr').find('td').eq(
                         1).text();
                     var nom = $(this).closest('tr').find('td')
@@ -150,7 +181,7 @@ $(document)
                     $("#id").val(id);
                     $("#prix").val(prix);
                     $("#date").val(dateAchat);
-                    btn.click(function(e) {
+                    btn.click(function (e) {
                         e.preventDefault();
                         var p = {
                             id: $("#id").val(),
@@ -167,15 +198,15 @@ $(document)
                                 data: JSON.stringify(p),
                                 type: 'POST',
                                 async: false,
-                                success: function(data,
-                                    textStatus, jqXHR) {
+                                success: function (data,
+                                                   textStatus, jqXHR) {
                                     table.ajax.reload();
                                     $("#code").val('');
                                     $("#nom").val('');
                                     btn.text('Ajouter');
                                 },
-                                error: function(jqXHR, textStatus,
-                                    errorThrown) {
+                                error: function (jqXHR, textStatus,
+                                                 errorThrown) {
                                     console.log(textStatus);
                                 }
                             });

@@ -49,12 +49,6 @@ public class Ferme {
 	public void setNumParcel(int numParcel) {
 		this.nbrParcel = numParcel;
 	}
-	public String getImg() {
-		return photo;
-	}
-	public void setImg(String img) {
-		this.photo = img;
-	}
 
 	public String getPhoto() {
 		return photo;

@@ -1,6 +1,6 @@
 $(document)
     .ready(
-        function() {
+        function () {
 
             table = $('#tplante')
                 .DataTable({
@@ -9,13 +9,17 @@ $(document)
                         dataSrc: ''
                     },
                     columns: [{
-                            data: "id"
-                        },
+                        data: "id"
+                    },
                         {
                             data: "libelle"
                         },
                         {
-                            data: "photo"
+                            data: 'photo',
+                            "render": function (data, type, row, meta) {
+                                return '<img src="' + data + '" alt="' + data + '"height="16" width="16"/>';
+
+                            }
                         },
                         {
                             data: "racine"
@@ -24,12 +28,12 @@ $(document)
                             data: "typePlante.libelle"
                         },
                         {
-                            "render": function() {
+                            "render": function () {
                                 return '<button type="button" class="btn btn-outline-danger supprimer">Supprimer</button>';
                             }
                         },
                         {
-                            "render": function() {
+                            "render": function () {
                                 return '<button type="button" class="btn btn-outline-secondary modifier">Modifier</button>';
                             }
                         }
@@ -40,7 +44,7 @@ $(document)
             $.ajax({
                 url: '/typeplant/all',
                 type: 'GET',
-                success: function(data) {
+                success: function (data) {
                     var option = '';
                     data.forEach(e => {
                         option += '<option value =' + e.id + '>' + e.libelle + '</option>';
@@ -48,8 +52,8 @@ $(document)
 
                     $('#typeplante').append(option);
                 },
-                error: function(jqXHR, textStatus,
-                    errorThrown) {
+                error: function (jqXHR, textStatus,
+                                 errorThrown) {
                     console.log(textStatus);
                 }
 
@@ -57,46 +61,60 @@ $(document)
 
             //button ajouter parcelle
             $('#btn').click(
-                function() {
+                function () {
                     var libelle = $("#libelle");
-                    var photo = $("#photo");
+
                     var recine = $("#recine");
                     var typePlante = $("#typeplante");
 
                     if ($('#btn').text() == 'Ajouter') {
-                        var m = {
-                            libelle: libelle.val(),
-                            photo: photo.val(),
-                            racine: recine.val(),
-                            typePlante: {
-                                id: typePlante.val(),
-                            }
-                        };
+                        //upload file
+                        var file = $('#photo')[0].files[0]
+                        var fd = new FormData();
+                        fd.append('file', file);
                         $.ajax({
-                            url: 'plante/saves',
-                            contentType: "application/json",
-                            dataType: "json",
-                            data: JSON.stringify(m),
+                            url: '/load-plantes',
                             type: 'POST',
-                            async: false,
-                            success: function(data, textStatus,
-                                jqXHR) {
-                                table.ajax.reload();
-                            },
-                            error: function(jqXHR, textStatus,
-                                errorThrown) {
-                                console.log(textStatus);
+                            processData: false,
+                            contentType: false,
+                            data: fd,
+                            success: function (photo, status, jqxhr) {
+
+                                var m = {
+                                    libelle: libelle.val(),
+                                    photo: photo,
+                                    racine: recine.val(),
+                                    typePlante: {
+                                        id: typePlante.val(),
+                                    }
+                                };
+                                $.ajax({
+                                    url: 'plante/saves',
+                                    contentType: "application/json",
+                                    dataType: "json",
+                                    data: JSON.stringify(m),
+                                    type: 'POST',
+                                    async: false,
+                                    success: function (data, textStatus,
+                                                       jqXHR) {
+                                        table.ajax.reload();
+                                    },
+                                    error: function (jqXHR, textStatus,
+                                                     errorThrown) {
+                                        console.log(textStatus);
+                                    }
+                                });
+                                $("#main-content").load(
+                                    "./page/plante.html");
                             }
                         });
-                        $("#main-content").load(
-                            "./page/plante.html");
                     }
                 });
             $('#table-content')
                 .on(
                     'click',
                     '.supprimer',
-                    function() {
+                    function () {
 
                         var id = $(this).closest('tr').find(
                             'td').eq(0).text();
@@ -112,14 +130,14 @@ $(document)
                         $(this).closest('tr').replaceWith(
                             newLigne);
                         $('.annuler').click(
-                            function() {
+                            function () {
                                 $(this).closest('tr')
                                     .replaceWith(
                                         oldLing);
                             });
                         $('.confirmer')
                             .click(
-                                function(e) {
+                                function (e) {
                                     e.preventDefault();
                                     $
                                         .ajax({
@@ -128,26 +146,26 @@ $(document)
                                             data: {},
                                             type: 'DELETE',
                                             async: false,
-                                            success: function(
+                                            success: function (
                                                 data,
                                                 textStatus,
                                                 jqXHR) {
                                                 if (data
                                                     .includes("error") == true) {
                                                     $(
-                                                            "#error")
+                                                        "#error")
                                                         .modal();
                                                 } else {
                                                     table.ajax
                                                         .reload();
                                                 }
                                             },
-                                            error: function(
+                                            error: function (
                                                 jqXHR,
                                                 textStatus,
                                                 errorThrown) {
                                                 $(
-                                                        "#error")
+                                                    "#error")
                                                     .modal();
                                             }
                                         });
@@ -159,10 +177,11 @@ $(document)
             $('#table-content').on(
                 'click',
                 '.modifier',
-                function() {
+                function () {
                     var btn = $('#btn');
                     var id = $(this).closest('tr').find('td').eq(0)
-                        .text();;
+                        .text();
+                    ;
                     var code = $(this).closest('tr').find('td').eq(
                         1).text();
                     var libelle = $(this).closest('tr').find('td')
@@ -173,7 +192,7 @@ $(document)
                     $("#libelle").val(libelle);
                     $("#id").val(id);
 
-                    btn.click(function(e) {
+                    btn.click(function (e) {
                         e.preventDefault();
                         var m = {
                             id: $("#id").val(),
@@ -188,14 +207,14 @@ $(document)
                                 data: JSON.stringify(m),
                                 type: 'POST',
                                 async: false,
-                                success: function(data,
-                                    textStatus, jqXHR) {
+                                success: function (data,
+                                                   textStatus, jqXHR) {
                                     table.ajax.reload();
 
                                     btn.text('Ajouter');
                                 },
-                                error: function(jqXHR, textStatus,
-                                    errorThrown) {
+                                error: function (jqXHR, textStatus,
+                                                 errorThrown) {
                                     console.log(textStatus);
                                 }
                             });

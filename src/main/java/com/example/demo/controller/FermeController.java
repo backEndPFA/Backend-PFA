@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.demo.model.*;
+import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,10 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.model.Ferme;
-import com.example.demo.model.Grandeur;
-import com.example.demo.model.Parcelle;
-import com.example.demo.model.TempFerm;
 import com.example.demo.repository.FermeRepository;
 import com.example.demo.repository.GrandeurRepository;
 import com.example.demo.repository.ParcelleRepository;
@@ -30,6 +28,8 @@ public class FermeController {
 	private GrandeurRepository grandeurRepository;
 	@Autowired
 	private ParcelleRepository parcelleRepository;
+	@Autowired
+	private UserRepository userRepository;
 
 	@GetMapping("/all")
 	public List<Ferme> findAll() {
@@ -74,6 +74,14 @@ public class FermeController {
 	}
 	@PostMapping(value = "/saves")
 	public void saves(@RequestBody final Ferme ferme) {
+		User user = new User();
+		for (User u: userRepository.findAll()) {
+			if (u.getUserId()==ferme.getUser().getUserId())
+			{
+				user = u;
+			}
+		}
+		ferme.setUser(user);
 		fermeRepository.save(ferme);
 	}
 
